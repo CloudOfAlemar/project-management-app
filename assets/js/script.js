@@ -36,6 +36,7 @@ function createTaskCard(task) {
 
 // Todo: create a function to render the task list and make cards draggable
 function renderTaskList() {
+  todoCards.empty();
   $( taskList ).each( ( index, task ) => {
     createTaskCard( task );
   } );
@@ -68,8 +69,16 @@ function handleDrop(event, ui) {
 
 }
 
+// Clear Task Inputs
+function clearTaskInputs() {
+  taskTitle.val( "" );
+  taskDueDate.val( "" );
+  taskDescription.val( "" );
+}
+
 // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
 $(document).ready(function () {
+  if( localStorage.getItem( "tasks" ) ) renderTaskList();
 
   // Task Due Date Input Datepicker
   taskDueDate.datepicker();
@@ -77,6 +86,8 @@ $(document).ready(function () {
   modalBtn.on("click", function() {
     handleAddTask();
     renderTaskList();
+    clearTaskInputs();
+    console.log( taskList );
   });
 
   $( document ).on( "click", ".delete-btn",function( event ) {
