@@ -4,10 +4,11 @@ const taskDueDate = $( "#task-due-date" );
 const taskDescription = $( "#task-description" );
 const modalBtn = $( "#modal-btn" );
 const todoCards = $( "#todo-cards" );
+const inProgressCards = $( "#in-progress-cards" );
+const doneCards = $( "#done-cards" );
 
 // Retrieve tasks and nextId from localStorage
 let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
-let nextId = JSON.parse(localStorage.getItem("nextId"));
 
 // Todo: create a function to generate a unique task id
 function generateTaskId() {
@@ -21,7 +22,7 @@ function generateTaskId() {
 // Todo: create a function to create a task card
 function createTaskCard(task) {
   const taskCard = 
-  `<div class="card" data-task-id="${ task.id }">
+  `<div class="card draggable" data-task-id="${ task.id }">
     <div class="card-header">
       ${ task.title }
     </div>
@@ -31,15 +32,37 @@ function createTaskCard(task) {
       <a href="#" class="btn btn-danger delete-btn">Delete</a>
     </div>
   </div>`;
-  todoCards.append( taskCard );
+  if( task.status === "to-do" ) {
+    todoCards.append( taskCard );
+  } else if( task.status === "in-progress" ) {
+    inProgressCards.append( taskCard );
+  } else if( task.status === "done" ) {
+    doneCards.append( taskCard );
+  }
+}
+
+function emptyInputs() {
+  todoCards.empty();
+  inProgressCards.empty();
+  doneCards.empty();
 }
 
 // Todo: create a function to render the task list and make cards draggable
 function renderTaskList() {
-  todoCards.empty();
   $( taskList ).each( ( index, task ) => {
     createTaskCard( task );
   } );
+  $( ".draggable" ).draggable({
+    opacity: .75,
+    zIndex: 100,
+    helper: function( event ) {
+      const taskCard = $( event.target ).hasClass( "card" ) ?
+      $( event.target ) : $( event.target ).closest( ".card" );
+      return taskCard.clone().css( {
+        width: taskCard.outerWidth()
+      } );
+    }
+  });
 }
 
 // Todo: create a function to handle adding a new task
@@ -48,7 +71,7 @@ function handleAddTask(event){
   task.title = taskTitle.val().trim();
   task.dueDate = taskDueDate.val();
   task.description = taskDescription.val().trim();
-  task.status = "Not Yet Started";
+  task.status = "to-do";
   task.id = generateTaskId();
   taskList.push( task );
   localStorage.setItem( "tasks", JSON.stringify( taskList ) );
@@ -66,7 +89,26 @@ function handleDeleteTask(event){
 
 // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
+  const eventId = $( event.target ).attr( "id" );
+      
+  // get generated task id
+  const taskId = $( ui.draggable[ 0 ] ).data( "task-id" );
 
+  // change status of task
+  $( taskList ).each( ( index, task ) => {
+    if( task.id === taskId ) task.status = eventId;
+  } );
+
+  // update list to local storage
+  localStorage.setItem( "tasks", JSON.stringify( taskList ) );
+
+  // remove all task ui elements
+  $( taskList ).each( ( index, task ) => {
+    $( `[data-task-id="${ task.id }"]` ).remove();
+  } );
+
+  // render task ui elements
+  renderTaskList();
 }
 
 // Clear Task Inputs
@@ -87,11 +129,16 @@ $(document).ready(function () {
     handleAddTask();
     renderTaskList();
     clearTaskInputs();
-    console.log( taskList );
   });
 
   $( document ).on( "click", ".delete-btn",function( event ) {
     handleDeleteTask( event.target );
+  } );
+
+  $( ".lane" ).droppable( {
+    tolerance: "pointer",
+    accept: ".draggable",
+    drop: handleDrop
   } );
 
 });

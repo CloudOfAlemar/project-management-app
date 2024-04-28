@@ -18,3 +18,7 @@ body {
 #modal-btn {
   width: auto;
 }
+
+.highlight {
+  background-color: red;
+}
