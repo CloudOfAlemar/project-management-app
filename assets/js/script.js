@@ -59,7 +59,8 @@ function renderTaskList() {
       const taskCard = $( event.target ).hasClass( "card" ) ?
       $( event.target ) : $( event.target ).closest( ".card" );
       return taskCard.clone().css( {
-        width: taskCard.outerWidth()
+        width: taskCard.outerWidth(),
+        cursor: "grabbing"
       } );
     }
   });

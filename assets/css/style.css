@@ -22,3 +22,11 @@ body {
 .highlight {
   background-color: red;
 }
+
+.draggable:hover {
+  cursor: grab;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
