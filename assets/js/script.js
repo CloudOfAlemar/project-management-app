@@ -9,6 +9,8 @@ const doneCards = $( "#done-cards" );
 
 // Retrieve tasks and nextId from localStorage
 let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
+const now = dayjs();
+
 
 // Todo: create a function to generate a unique task id
 function generateTaskId() {
@@ -22,7 +24,7 @@ function generateTaskId() {
 // Todo: create a function to create a task card
 function createTaskCard(task) {
   const taskCard = 
-  `<div class="card draggable" data-task-id="${ task.id }">
+  `<div class="card draggable mb-3" data-task-id="${ task.id }">
     <div class="card-header">
       ${ task.title }
     </div>
@@ -32,12 +34,25 @@ function createTaskCard(task) {
       <a href="#" class="btn btn-danger delete-btn">Delete</a>
     </div>
   </div>`;
+
   if( task.status === "to-do" ) {
     todoCards.append( taskCard );
   } else if( task.status === "in-progress" ) {
     inProgressCards.append( taskCard );
   } else if( task.status === "done" ) {
     doneCards.append( taskCard );
+  }
+
+  // create a dayjs obj by capturing the task due date 
+  const taskDueDate = dayjs( task.dueDate );
+  // check if the task is due within 2 days or past due
+  const daysAway = Math.ceil( taskDueDate.diff( now, "day",true ) );
+  // 
+  if( daysAway < 0 ) {
+    $( `[data-task-id="${ task.id }"]` ).addClass( "bg-danger text-white" );
+    $( `[data-task-id="${ task.id }"] .delete-btn` ).addClass( "border border-light" );
+  } else if( daysAway >= 0 && daysAway < 3 ) {
+    $( `[data-task-id="${ task.id }"]` ).addClass( "bg-warning text-white" );
   }
 }
 
@@ -88,6 +103,12 @@ function handleDeleteTask(event){
   localStorage.setItem( "tasks", JSON.stringify( taskList ) );
 }
 
+function removeAllUiTasks() {
+  $( taskList ).each( ( index, task ) => {
+    $( `[data-task-id="${ task.id }"]` ).remove();
+  } );
+}
+
 // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
   const eventId = $( event.target ).attr( "id" );
@@ -104,9 +125,7 @@ function handleDrop(event, ui) {
   localStorage.setItem( "tasks", JSON.stringify( taskList ) );
 
   // remove all task ui elements
-  $( taskList ).each( ( index, task ) => {
-    $( `[data-task-id="${ task.id }"]` ).remove();
-  } );
+  removeAllUiTasks();
 
   // render task ui elements
   renderTaskList();
@@ -126,10 +145,14 @@ $(document).ready(function () {
   // Task Due Date Input Datepicker
   taskDueDate.datepicker();
 
-  modalBtn.on("click", function() {
-    handleAddTask();
-    renderTaskList();
-    clearTaskInputs();
+  modalBtn.on("click", function( event ) {
+    if( taskTitle.val() && taskDueDate.val() && taskDescription.val() ) {
+      handleAddTask();
+      removeAllUiTasks();
+      renderTaskList();
+      clearTaskInputs();
+      $( "#formModal" ).modal( "hide" );
+    }
   });
 
   $( document ).on( "click", ".delete-btn",function( event ) {
