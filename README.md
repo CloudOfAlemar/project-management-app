@@ -16,7 +16,7 @@ code if the task due date is overdue or upcoming.
 - Dayjs
 
 ## Links
-[Link to Live Site]()
+[Link to Live Site](https://cloudofalemar.github.io/project-management-app/)
 
 ## Screenshot
 ![Project Management Application Screenshot](./assets/images/project-management-app-screenshot.png)
